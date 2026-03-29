@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(anchor build)",
+      "Bash(anchor test)",
+      "Bash(anchor deploy*)",
+      "Bash(solana*)",
+      "Bash(npm run*)",
+      "Bash(npx ts-node*)",
+      "Bash(cargo build*)",
+      "Bash(cargo test*)",
+      "Read(*)",
+      "Write(programs/**)",
+      "Write(app/**)",
+      "Write(tests/**)",
+      "Write(scripts/**)"
+    ],
+    "deny": [
+      "Write(.env)",
+      "Write(**/keypair*.json)",
+      "Write(**/secret*)",
+      "Bash(rm -rf /)",
+      "Bash(*private*key*)",
+      "Bash(*seed*phrase*)"
+    ]
+  }
+}
