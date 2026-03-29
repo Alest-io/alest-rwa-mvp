@@ -3,7 +3,7 @@ seeds = false
 skip-lint = false
 
 [programs.devnet]
-rwa_token = "YOUR_PROGRAM_ID_HERE"
+rwa_token = "BLiqwdcVRPVT7Z4UjVkCaRzcK8Ui91s3edtZz94YWJf8"
 
 [registry]
 url = "https://api.apr.dev"

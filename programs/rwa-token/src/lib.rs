@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("YOUR_PROGRAM_ID_HERE");
+declare_id!("BLiqwdcVRPVT7Z4UjVkCaRzcK8Ui91s3edtZz94YWJf8");
 
 #[program]
 pub mod rwa_token {

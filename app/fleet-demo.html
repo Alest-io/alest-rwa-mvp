@@ -1,0 +1,793 @@
+<html>
+<head>
+  <title>Alest.io - Robotaxi Fleet Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      overflow: hidden;
+    }
+ 
+    /* Top bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #0a0a0a, #111);
+      border-bottom: 1px solid #1a1a1a;
+      height: 50px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo h1 {
+      font-size: 1.1rem;
+      background: linear-gradient(90deg, #4285f4, #00c9ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .logo span {
+      font-size: 0.7rem;
+      color: #555;
+      border: 1px solid #333;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .stats-bar {
+      display: flex;
+      gap: 20px;
+      font-size: 0.75rem;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #4285f4;
+    }
+    .stat-label { color: #666; }
+ 
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 8px;
+      padding: 10px 20px;
+      background: #0d0d0d;
+      border-bottom: 1px solid #1a1a1a;
+      flex-wrap: wrap;
+      align-items: center;
+      height: 48px;
+    }
+    .btn {
+      padding: 6px 14px;
+      border: 1px solid #333;
+      border-radius: 6px;
+      background: #1a1a1a;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 0.78rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn:hover { background: #4285f4; border-color: #4285f4; color: #fff; }
+    .btn.active { background: #4285f4; border-color: #4285f4; color: #fff; }
+    .btn.green { border-color: #34a853; color: #34a853; }
+    .btn.green:hover { background: #34a853; color: #fff; }
+    .btn.green.active { background: #34a853; color: #fff; }
+    .btn.red { border-color: #ea4335; color: #ea4335; }
+    .btn.red:hover { background: #ea4335; color: #fff; }
+    .separator {
+      width: 1px;
+      height: 24px;
+      background: #333;
+      margin: 0 4px;
+    }
+ 
+    /* Map */
+    #map {
+      width: 100%;
+      height: calc(100vh - 98px);
+    }
+ 
+    /* Side panel */
+    .side-panel {
+      position: fixed;
+      top: 98px;
+      right: 0;
+      width: 300px;
+      height: calc(100vh - 98px);
+      background: rgba(10,10,10,0.95);
+      border-left: 1px solid #1a1a1a;
+      overflow-y: auto;
+      z-index: 10;
+      padding: 16px;
+      display: none;
+    }
+    .side-panel.open { display: block; }
+    .side-panel h3 {
+      font-size: 0.85rem;
+      color: #4285f4;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #222;
+    }
+    .vehicle-card {
+      background: #151515;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .vehicle-card:hover {
+      border-color: #4285f4;
+      background: #1a1a2a;
+    }
+    .vehicle-card .name {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .vehicle-card .detail {
+      font-size: 0.72rem;
+      color: #888;
+      line-height: 1.5;
+    }
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .status-active { background: #34a853; }
+    .status-charging { background: #fbbc04; }
+    .status-idle { background: #4285f4; }
+    .status-maintenance { background: #ea4335; }
+ 
+    /* Legend */
+    .legend {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(10,10,10,0.95);
+      border: 1px solid #222;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 0.72rem;
+      z-index: 10;
+    }
+    .legend h4 {
+      color: #fff;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 5px;
+      color: #999;
+    }
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+ 
+    /* Notification toast */
+    .toast {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      background: rgba(26,26,26,0.95);
+      border: 1px solid #4285f4;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 0.8rem;
+      z-index: 100;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+ 
+  <div class="top-bar">
+    <div class="logo">
+      <h1>ALEST.IO</h1>
+      <span>ROBOTAXI FLEET</span>
+    </div>
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-value" id="activeCount">5</div>
+        <div class="stat-label">Activos</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="tripsToday">127</div>
+        <div class="stat-label">Viajes hoy</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="revenue">$2,847</div>
+        <div class="stat-label">Revenue hoy</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="tokenPrice">$1.12</div>
+        <div class="stat-label">Token ALST</div>
+      </div>
+    </div>
+  </div>
+ 
+  <div class="controls">
+    <button class="btn active" onclick="toggleFleet()">Flota</button>
+    <button class="btn" onclick="toggleZones()">Zonas</button>
+    <button class="btn" onclick="toggleStations()">Estaciones</button>
+    <button class="btn" onclick="toggleRoutes()">Rutas</button>
+    <div class="separator"></div>
+    <button class="btn green" onclick="startSimulation()" id="simBtn">Iniciar Simulacion</button>
+    <button class="btn red" onclick="stopSimulation()">Detener</button>
+    <div class="separator"></div>
+    <button class="btn" onclick="setView('roadmap')">Mapa</button>
+    <button class="btn" onclick="setView('hybrid')">Satelite</button>
+    <button class="btn" onclick="toggle3D()">3D</button>
+    <div class="separator"></div>
+    <button class="btn" onclick="togglePanel()">Panel</button>
+  </div>
+ 
+  <div id="map"></div>
+ 
+  <!-- Side panel -->
+  <div class="side-panel" id="sidePanel">
+    <h3>FLOTA DE ROBOTAXIS</h3>
+    <div id="vehicleList"></div>
+  </div>
+ 
+  <!-- Legend -->
+  <div class="legend">
+    <h4>Leyenda</h4>
+    <div class="legend-item"><div class="legend-color" style="background:#34a853;"></div> En servicio</div>
+    <div class="legend-item"><div class="legend-color" style="background:#fbbc04;"></div> Cargando bateria</div>
+    <div class="legend-item"><div class="legend-color" style="background:#4285f4;"></div> Disponible</div>
+    <div class="legend-item"><div class="legend-color" style="background:#ea4335;"></div> Mantenimiento</div>
+    <div class="legend-item"><div class="legend-color" style="background:rgba(66,133,244,0.15); border:1px solid #4285f4;"></div> Zona de servicio</div>
+    <div class="legend-item"><div class="legend-color" style="background:rgba(251,188,4,0.3); border:1px solid #fbbc04;"></div> Estacion de carga</div>
+  </div>
+ 
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+ 
+  <script>
+    var map, simulationInterval;
+    var vehicleMarkers = [];
+    var zonePolygons = [];
+    var stationMarkers = [];
+    var routeLines = [];
+    var showFleet = true, showZones = false, showStations = false, showRoutes = false;
+    var simRunning = false;
+ 
+    // === DATOS DE LA FLOTA ===
+    var vehicles = [
+      {
+        id: 'ALST-001',
+        name: 'Tesla RoboTaxi #001',
+        status: 'active',
+        battery: 87,
+        trips: 34,
+        revenue: 782,
+        speed: 28,
+        lat: 40.7580,
+        lng: -73.9855,
+        route: 'Times Square - Hudson Yards',
+        tokenHolders: 142
+      },
+      {
+        id: 'ALST-002',
+        name: 'Tesla RoboTaxi #002',
+        status: 'active',
+        battery: 62,
+        trips: 28,
+        revenue: 634,
+        speed: 35,
+        lat: 40.7484,
+        lng: -73.9857,
+        route: 'Empire State - Penn Station',
+        tokenHolders: 98
+      },
+      {
+        id: 'ALST-003',
+        name: 'Tesla RoboTaxi #003',
+        status: 'charging',
+        battery: 23,
+        trips: 41,
+        revenue: 891,
+        speed: 0,
+        lat: 40.7623,
+        lng: -73.9971,
+        route: 'En estacion Hudson Yards',
+        tokenHolders: 215
+      },
+      {
+        id: 'ALST-004',
+        name: 'Tesla RoboTaxi #004',
+        status: 'idle',
+        battery: 95,
+        trips: 12,
+        revenue: 289,
+        speed: 0,
+        lat: 40.7527,
+        lng: -73.9772,
+        route: 'Disponible - Grand Central',
+        tokenHolders: 67
+      },
+      {
+        id: 'ALST-005',
+        name: 'Tesla RoboTaxi #005',
+        status: 'active',
+        battery: 74,
+        trips: 19,
+        revenue: 412,
+        speed: 22,
+        lat: 40.7411,
+        lng: -74.0018,
+        route: 'Chelsea - Meatpacking',
+        tokenHolders: 156
+      },
+      {
+        id: 'ALST-006',
+        name: 'Tesla RoboTaxi #006',
+        status: 'maintenance',
+        battery: 45,
+        trips: 0,
+        revenue: 0,
+        speed: 0,
+        lat: 40.7681,
+        lng: -73.9819,
+        route: 'En taller - Columbus Circle',
+        tokenHolders: 89
+      }
+    ];
+ 
+    // === ZONAS DE SERVICIO ===
+    var serviceZones = [
+      {
+        name: 'Midtown Manhattan',
+        color: '#4285f4',
+        paths: [
+          {lat: 40.7700, lng: -74.0000},
+          {lat: 40.7700, lng: -73.9700},
+          {lat: 40.7480, lng: -73.9700},
+          {lat: 40.7480, lng: -74.0000}
+        ]
+      },
+      {
+        name: 'Chelsea - Meatpacking',
+        color: '#34a853',
+        paths: [
+          {lat: 40.7480, lng: -74.0080},
+          {lat: 40.7480, lng: -73.9900},
+          {lat: 40.7350, lng: -73.9900},
+          {lat: 40.7350, lng: -74.0080}
+        ]
+      },
+      {
+        name: 'Hudson Yards',
+        color: '#00c9ff',
+        paths: [
+          {lat: 40.7680, lng: -74.0050},
+          {lat: 40.7680, lng: -73.9950},
+          {lat: 40.7560, lng: -73.9950},
+          {lat: 40.7560, lng: -74.0050}
+        ]
+      }
+    ];
+ 
+    // === ESTACIONES DE CARGA ===
+    var stations = [
+      { name: 'Estacion Hudson Yards', lat: 40.7537, lng: -73.9993, capacity: 8, available: 3 },
+      { name: 'Estacion Times Square', lat: 40.7580, lng: -73.9855, capacity: 6, available: 5 },
+      { name: 'Estacion Penn Station', lat: 40.7506, lng: -73.9935, capacity: 10, available: 7 },
+      { name: 'Estacion Grand Central', lat: 40.7527, lng: -73.9772, capacity: 8, available: 6 },
+      { name: 'Estacion Chelsea', lat: 40.7433, lng: -74.0018, capacity: 4, available: 2 }
+    ];
+ 
+    // === RUTAS PREDEFINIDAS ===
+    var routes = [
+      {
+        name: 'Ruta Times Square - Hudson Yards',
+        color: '#4285f4',
+        path: [
+          {lat: 40.7580, lng: -73.9855},
+          {lat: 40.7575, lng: -73.9890},
+          {lat: 40.7570, lng: -73.9930},
+          {lat: 40.7590, lng: -73.9960},
+          {lat: 40.7623, lng: -73.9971}
+        ]
+      },
+      {
+        name: 'Ruta Empire State - Penn Station',
+        color: '#34a853',
+        path: [
+          {lat: 40.7484, lng: -73.9857},
+          {lat: 40.7490, lng: -73.9880},
+          {lat: 40.7500, lng: -73.9910},
+          {lat: 40.7506, lng: -73.9935}
+        ]
+      },
+      {
+        name: 'Ruta Chelsea - Meatpacking',
+        color: '#ea4335',
+        path: [
+          {lat: 40.7433, lng: -73.9978},
+          {lat: 40.7420, lng: -74.0010},
+          {lat: 40.7411, lng: -74.0018},
+          {lat: 40.7400, lng: -74.0050},
+          {lat: 40.7390, lng: -74.0080}
+        ]
+      }
+    ];
+ 
+    // === SVG ICONS ===
+    function getVehicleIcon(status) {
+      var colors = {
+        active: '#34a853',
+        charging: '#fbbc04',
+        idle: '#4285f4',
+        maintenance: '#ea4335'
+      };
+      var color = colors[status] || '#fff';
+      return {
+        path: 'M12 2C8 2 4 3.5 4 7v5l-2 2v1h20v-1l-2-2V7c0-3.5-4-5-8-5zm0 18c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zM7 9.5C7 7 9 5 12 5s5 2 5 4.5V12H7V9.5z',
+        fillColor: color,
+        fillOpacity: 1,
+        strokeColor: '#fff',
+        strokeWeight: 1.5,
+        scale: 1.8,
+        anchor: new google.maps.Point(12, 12)
+      };
+    }
+ 
+    function getStationIcon() {
+      return {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: '#fbbc04',
+        fillOpacity: 0.8,
+        strokeColor: '#fff',
+        strokeWeight: 2,
+        scale: 10
+      };
+    }
+ 
+    // === INIT MAP ===
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 40.7550, lng: -73.9900 },
+        zoom: 14,
+        mapTypeId: 'roadmap',
+        styles: [
+          { elementType: 'geometry', stylers: [{ color: '#1d2c4d' }] },
+          { elementType: 'labels.text.fill', stylers: [{ color: '#8ec3b9' }] },
+          { elementType: 'labels.text.stroke', stylers: [{ color: '#1a3646' }] },
+          { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#304a7d' }] },
+          { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#255d8a' }] },
+          { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#2c6675' }] },
+          { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0e1626' }] },
+          { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#283d6a' }] },
+          { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#2f3948' }] },
+          { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#1a4435' }] }
+        ],
+        mapTypeControl: false,
+        streetViewControl: true,
+        fullscreenControl: true,
+        zoomControl: true,
+        gestureHandling: 'greedy'
+      });
+ 
+      // Crear markers de vehiculos
+      createVehicleMarkers();
+ 
+      // Crear zonas
+      createZones();
+ 
+      // Crear estaciones
+      createStations();
+ 
+      // Crear rutas
+      createRoutes();
+ 
+      // Estado inicial: solo flota visible
+      toggleElementsVisibility();
+ 
+      // Generar panel lateral
+      buildVehiclePanel();
+ 
+      showToast('Flota Alest.io cargada: ' + vehicles.length + ' vehiculos');
+    }
+ 
+    // === CREAR MARKERS DE VEHICULOS ===
+    function createVehicleMarkers() {
+      for (var i = 0; i < vehicles.length; i++) {
+        var v = vehicles[i];
+        var marker = new google.maps.Marker({
+          position: { lat: v.lat, lng: v.lng },
+          map: map,
+          title: v.name,
+          icon: getVehicleIcon(v.status),
+          animation: google.maps.Animation.DROP,
+          zIndex: 100
+        });
+ 
+        var statusText = {
+          active: 'En servicio',
+          charging: 'Cargando',
+          idle: 'Disponible',
+          maintenance: 'Mantenimiento'
+        };
+        var statusColor = {
+          active: '#34a853',
+          charging: '#fbbc04',
+          idle: '#4285f4',
+          maintenance: '#ea4335'
+        };
+ 
+        var content = '<div style="color:#000;padding:10px;max-width:280px;font-family:Segoe UI,Arial;">' +
+          '<div style="font-size:14px;font-weight:bold;margin-bottom:6px;">' + v.name + '</div>' +
+          '<div style="display:inline-block;background:' + statusColor[v.status] + ';color:#fff;padding:2px 10px;border-radius:4px;font-size:11px;margin-bottom:8px;">' + statusText[v.status] + '</div>' +
+          '<div style="font-size:12px;color:#555;line-height:1.8;">' +
+          'Bateria: <strong>' + v.battery + '%</strong><br>' +
+          'Velocidad: <strong>' + v.speed + ' mph</strong><br>' +
+          'Viajes hoy: <strong>' + v.trips + '</strong><br>' +
+          'Revenue: <strong>$' + v.revenue + '</strong><br>' +
+          'Ruta: <strong>' + v.route + '</strong><br>' +
+          'Token holders: <strong>' + v.tokenHolders + '</strong>' +
+          '</div>' +
+          '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee;font-size:11px;color:#4285f4;">ID: ' + v.id + '</div>' +
+          '</div>';
+ 
+        var infoWindow = new google.maps.InfoWindow({ content: content });
+ 
+        (function(marker, infoWindow) {
+          marker.addListener('click', function() {
+            infoWindow.open(map, marker);
+          });
+        })(marker, infoWindow);
+ 
+        vehicleMarkers.push(marker);
+      }
+    }
+ 
+    // === CREAR ZONAS DE SERVICIO ===
+    function createZones() {
+      for (var i = 0; i < serviceZones.length; i++) {
+        var z = serviceZones[i];
+        var polygon = new google.maps.Polygon({
+          paths: z.paths,
+          strokeColor: z.color,
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: z.color,
+          fillOpacity: 0.1,
+          map: null
+        });
+ 
+        var infoWindow = new google.maps.InfoWindow({
+          content: '<div style="color:#000;padding:6px;"><strong>' + z.name + '</strong><br>Zona de servicio activa</div>'
+        });
+ 
+        (function(polygon, infoWindow, z) {
+          polygon.addListener('click', function(e) {
+            infoWindow.setPosition(e.latLng);
+            infoWindow.open(map);
+          });
+        })(polygon, infoWindow, z);
+ 
+        zonePolygons.push(polygon);
+      }
+    }
+ 
+    // === CREAR ESTACIONES ===
+    function createStations() {
+      for (var i = 0; i < stations.length; i++) {
+        var s = stations[i];
+        var marker = new google.maps.Marker({
+          position: { lat: s.lat, lng: s.lng },
+          map: null,
+          title: s.name,
+          icon: getStationIcon(),
+          zIndex: 50
+        });
+ 
+        var content = '<div style="color:#000;padding:8px;font-family:Segoe UI,Arial;">' +
+          '<div style="font-size:13px;font-weight:bold;margin-bottom:4px;">' + s.name + '</div>' +
+          '<div style="font-size:12px;color:#555;">' +
+          'Capacidad: <strong>' + s.capacity + ' vehiculos</strong><br>' +
+          'Disponibles: <strong>' + s.available + ' espacios</strong>' +
+          '</div></div>';
+ 
+        var infoWindow = new google.maps.InfoWindow({ content: content });
+ 
+        (function(marker, infoWindow) {
+          marker.addListener('click', function() {
+            infoWindow.open(map, marker);
+          });
+        })(marker, infoWindow);
+ 
+        stationMarkers.push(marker);
+      }
+    }
+ 
+    // === CREAR RUTAS ===
+    function createRoutes() {
+      for (var i = 0; i < routes.length; i++) {
+        var r = routes[i];
+        var line = new google.maps.Polyline({
+          path: r.path,
+          geodesic: true,
+          strokeColor: r.color,
+          strokeOpacity: 0.8,
+          strokeWeight: 4,
+          map: null,
+          icons: [{
+            icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 3, strokeColor: '#fff' },
+            offset: '50%'
+          }]
+        });
+        routeLines.push(line);
+      }
+    }
+ 
+    // === TOGGLE FUNCIONES ===
+    function toggleFleet() {
+      showFleet = !showFleet;
+      toggleElementsVisibility();
+    }
+    function toggleZones() {
+      showZones = !showZones;
+      toggleElementsVisibility();
+    }
+    function toggleStations() {
+      showStations = !showStations;
+      toggleElementsVisibility();
+    }
+    function toggleRoutes() {
+      showRoutes = !showRoutes;
+      toggleElementsVisibility();
+    }
+ 
+    function toggleElementsVisibility() {
+      for (var i = 0; i < vehicleMarkers.length; i++) {
+        vehicleMarkers[i].setMap(showFleet ? map : null);
+      }
+      for (var i = 0; i < zonePolygons.length; i++) {
+        zonePolygons[i].setMap(showZones ? map : null);
+      }
+      for (var i = 0; i < stationMarkers.length; i++) {
+        stationMarkers[i].setMap(showStations ? map : null);
+      }
+      for (var i = 0; i < routeLines.length; i++) {
+        routeLines[i].setMap(showRoutes ? map : null);
+      }
+    }
+ 
+    // === SIMULACION DE MOVIMIENTO ===
+    function startSimulation() {
+      if (simRunning) return;
+      simRunning = true;
+      document.getElementById('simBtn').classList.add('active');
+      showToast('Simulacion iniciada - vehiculos en movimiento');
+ 
+      simulationInterval = setInterval(function() {
+        for (var i = 0; i < vehicles.length; i++) {
+          var v = vehicles[i];
+          if (v.status === 'active') {
+            // Movimiento aleatorio suave
+            v.lat += (Math.random() - 0.5) * 0.001;
+            v.lng += (Math.random() - 0.5) * 0.001;
+            v.speed = Math.floor(15 + Math.random() * 30);
+            v.battery = Math.max(10, v.battery - Math.random() * 0.3);
+ 
+            vehicleMarkers[i].setPosition({ lat: v.lat, lng: v.lng });
+          }
+        }
+ 
+        // Actualizar stats
+        var totalTrips = parseInt(document.getElementById('tripsToday').textContent);
+        if (Math.random() > 0.7) {
+          totalTrips += 1;
+          document.getElementById('tripsToday').textContent = totalTrips;
+          var newRevenue = 2847 + (totalTrips - 127) * 22;
+          document.getElementById('revenue').textContent = '$' + newRevenue.toLocaleString();
+        }
+ 
+        // Fluctuar token price
+        var currentPrice = parseFloat(document.getElementById('tokenPrice').textContent.replace('$', ''));
+        currentPrice += (Math.random() - 0.48) * 0.01;
+        document.getElementById('tokenPrice').textContent = '$' + currentPrice.toFixed(2);
+ 
+      }, 1500);
+    }
+ 
+    function stopSimulation() {
+      simRunning = false;
+      clearInterval(simulationInterval);
+      document.getElementById('simBtn').classList.remove('active');
+      showToast('Simulacion detenida');
+    }
+ 
+    // === VISTAS ===
+    function setView(type) {
+      if (type === 'hybrid') {
+        map.setMapTypeId('hybrid');
+      } else {
+        map.setMapTypeId(type);
+      }
+    }
+ 
+    function toggle3D() {
+      if (map.getTilt() === 0) {
+        map.setMapTypeId('hybrid');
+        map.setTilt(60);
+        map.setHeading(320);
+        map.setZoom(16);
+      } else {
+        map.setTilt(0);
+      }
+    }
+ 
+    // === PANEL LATERAL ===
+    function togglePanel() {
+      var panel = document.getElementById('sidePanel');
+      panel.classList.toggle('open');
+    }
+ 
+    function buildVehiclePanel() {
+      var html = '';
+      var statusText = { active: 'En servicio', charging: 'Cargando', idle: 'Disponible', maintenance: 'Mantenimiento' };
+      var statusClass = { active: 'status-active', charging: 'status-charging', idle: 'status-idle', maintenance: 'status-maintenance' };
+ 
+      for (var i = 0; i < vehicles.length; i++) {
+        var v = vehicles[i];
+        html += '<div class="vehicle-card" onclick="focusVehicle(' + i + ')">' +
+          '<div class="name"><span class="status-dot ' + statusClass[v.status] + '"></span>' + v.name + '</div>' +
+          '<div class="detail">' +
+          'Estado: ' + statusText[v.status] + '<br>' +
+          'Bateria: ' + v.battery + '% | Viajes: ' + v.trips + '<br>' +
+          'Revenue: $' + v.revenue + '<br>' +
+          'Holders: ' + v.tokenHolders + ' inversores' +
+          '</div></div>';
+      }
+      document.getElementById('vehicleList').innerHTML = html;
+    }
+ 
+    function focusVehicle(index) {
+      var v = vehicles[index];
+      map.panTo({ lat: v.lat, lng: v.lng });
+      map.setZoom(17);
+      google.maps.event.trigger(vehicleMarkers[index], 'click');
+    }
+ 
+    // === TOAST ===
+    function showToast(msg) {
+      var toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(function() { toast.style.display = 'none'; }, 3000);
+    }
+  </script>
+ 
+  <!-- REEMPLAZA PEGA_TU_API_KEY_AQUI CON TU API KEY DE GOOGLE -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDbKdH5INFouel-1L7EzfcpIfeNOhkgpeU&libraries=drawing,marker&callback=initMap" defer></script>
+ 
+</body>
+</html>
