@@ -1,66 +1,171 @@
-# 🚀 Alest.io — Real-World Asset Tokenization on Solana
+# 🚀 ALEST.IO — Real World Asset Tokenization on Solana
 
-> Democratizing investment in productive physical assets through tokenization.
+<div align="center">
 
-[![Built on Solana](https://img.shields.io/badge/Built%20on-Solana-blueviolet)](https://solana.com)
-[![Solana Frontier Hackathon](https://img.shields.io/badge/Hackathon-Solana%20Frontier%202026-green)](https://www.colosseum.org/)
+**Democratizing investment in productive physical assets through tokenization on Solana.**
 
-## 🎯 What is Alest.io?
+[Explorer (Devnet)](https://explorer.solana.com/address/BLiqwdcVRPVT7Z4UjVkCaRzcK8Ui91s3edtZz94YWJf8?cluster=devnet) · [Website](https://alest.io) · [ENS Identity](https://app.ens.domains/alest.io)
 
-Alest.io is a platform that tokenizes productive real-world assets on Solana, starting with a **Tesla robotaxi pilot**. Anyone can invest in fractional ownership of physical assets and receive proportional revenue distributions.
+</div>
 
-**"alest" is an anagram of "Tesla"** — symbolizing our mission to make productive assets accessible to everyone.
+---
 
-## 💡 How It Works
+## What is ALEST.IO?
 
-1. **Asset Tokenization** — A real-world asset (e.g., Tesla robotaxi worth ~$40,000) is tokenized into 40,000 SPL tokens at $1 each
-2. **Fractional Investment** — Users purchase tokens starting from ~$50, gaining fractional ownership
-3. **Revenue Distribution** — Income from transport, advertising, and asset appreciation flows proportionally to token holders
-4. **On-Chain Transparency** — All transactions, distributions, and asset data live on Solana
+ALEST.IO is a platform that allows anyone to invest in real-world productive assets — starting from just **$50**. We tokenize physical assets into SPL tokens on Solana, making fractional ownership accessible to everyone.
 
-## 🏗️ Architecture
+### 🚗 Pilot Asset: Tesla Robotaxi
 
-- **Solana Program** (Anchor/Rust) — Token minting, investment logic, revenue distribution
-- **React Frontend** — Wallet connection, investment UI, portfolio dashboard
-- **SPL Token-2022** — Enhanced token features for RWA compliance
+Our first asset is a **Tesla Robotaxi valued at $40,000 USD**, tokenized into **40,000 SPL tokens at $1 each**.
 
-## 🚀 Quick Start
+| | |
+|---|---|
+| **Asset Value** | $40,000 USD |
+| **Token Price** | $1 per token |
+| **Total Supply** | 40,000 tokens |
+| **Min. Investment** | $50 (50 tokens) |
+| **Revenue Sources** | Transport income, vehicle advertising, asset appreciation |
 
-```bash
-# Install dependencies
-npm install
+### Token Distribution
 
-# Build Solana program
-anchor build
-
-# Run tests
-anchor test
-
-# Start frontend
-cd app && npm run dev
+```
+Investors   ████████████████████████████████████  70%
+Platform    ██████████                            20%
+Reserve     █████                                 10%
 ```
 
-## 📊 Token Distribution
+---
 
-| Allocation | Percentage | Tokens |
-|-----------|-----------|--------|
-| Investors (public) | 70% | 28,000 |
-| Platform (alest.io) | 20% | 8,000 |
-| Reserve fund | 10% | 4,000 |
+## How It Works
 
-## 🌎 Target Markets
+When someone invests, the blockchain records everything publicly and permanently:
 
-- Latin Americans in the US seeking investment opportunities
-- Gig economy workers looking for passive income
-- Crypto-native RWA investors
+```
+→ From:    Investor's wallet (e.g. 7xKp...3mNf)
+→ To:      Smart contract (BLiqwdc...YWJf8)
+→ Amount:  100 USDC
+→ Result:  Investor receives 100 RWA tokens
+→ Fee:     ~$0.001
+```
 
-## 🔗 Links
+When the robotaxi generates revenue, profits are distributed automatically to all token holders — proportional to their holdings. No intermediaries, no banks, fully transparent.
 
-- **Website:** [alest.io](https://alest.io)
-- **ENS:** alest.eth
-- **Phantom:** @AlestIo
-- **GitHub:** [Alest-io](https://github.com/Alest-io)
+---
 
-## 📄 License
+## Smart Contract
 
-MIT
+**Program ID:** `BLiqwdcVRPVT7Z4UjVkCaRzcK8Ui91s3edtZz94YWJf8`
+
+**Network:** Solana Devnet
+
+**Verify on-chain:** [Solana Explorer →](https://explorer.solana.com/address/BLiqwdcVRPVT7Z4UjVkCaRzcK8Ui91s3edtZz94YWJf8?cluster=devnet)
+
+### Instructions
+
+| Instruction | Description |
+|---|---|
+| `initialize_asset` | Creates the tokenized asset with name, value, and token distribution |
+| `invest` | Allows anyone to invest (min. $50) and receive proportional tokens |
+| `distribute_revenue` | Distributes asset income to all token holders automatically |
+| `withdraw` | Allows investors to withdraw their tokens at any time |
+
+### Tech Stack
+
+- **Blockchain:** Solana
+- **Framework:** Anchor (Rust)
+- **Token Standard:** SPL Token
+- **Frontend:** React + Solana Wallet Adapter
+- **AI Agent:** Local tokenization agent powered by Qwen2.5-Coder (runs on RTX 3090, no cloud dependencies)
+
+---
+
+## Web3 Identity
+
+| | |
+|---|---|
+| **ENS Primary Name** | [alest.io](https://app.ens.domains/alest.io) (no expiration) |
+| **ENS Name** | [alest.eth](https://app.ens.domains/alest.eth) (until April 2029) |
+| **Solana Wallet** | Phantom @AlestIo |
+| **ETH Address** | `0xBA1...30Fea` |
+| **GitHub** | [Alest-io](https://github.com/Alest-io) |
+| **Telegram** | [@AlestTecnologia](https://t.me/AlestTecnologia) |
+
+---
+
+## Project Structure
+
+```
+alest-rwa-mvp/
+├── programs/
+│   └── rwa-token/
+│       └── src/
+│           └── lib.rs          # Smart contract (Anchor/Rust)
+├── app/                        # React frontend
+├── tests/                      # Integration tests
+├── docs/                       # Architecture & design decisions
+├── scripts/                    # Deployment & utility scripts
+└── Anchor.toml                 # Anchor configuration
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Solana CLI v3.1+
+- Rust 1.94+
+- Anchor CLI v1.0.0-rc.5
+- Node.js 18+
+
+### Build & Deploy
+
+```bash
+# Clone
+git clone https://github.com/Alest-io/alest-rwa-mvp.git
+cd alest-rwa-mvp
+
+# Build
+anchor build
+
+# Deploy to devnet
+solana program deploy target/deploy/rwa_token.so --url devnet
+```
+
+---
+
+## AI-Powered Development
+
+The smart contract code was generated by a **local AI tokenization agent** running entirely on consumer hardware (NVIDIA RTX 3090). No data was sent to external servers.
+
+The agent specializes in Solana/Anchor smart contract generation for RWA tokenization, including token economics, revenue distribution, and security patterns.
+
+---
+
+## Vision
+
+ALEST.IO aims to become the global marketplace for tokenized real-world assets:
+
+- 🚗 Autonomous vehicle fleets
+- 🏠 Real estate
+- ☀️ Solar energy installations
+- 🏭 Industrial machinery
+- 🌱 Carbon credits
+
+All tokenized, all accessible to small investors, all transparent on Solana.
+
+> *"A machine that works for its investors."*
+
+---
+
+## Hackathon
+
+Built for the **Solana Frontier Hackathon** (April 6 – May 11, 2026).
+
+---
+
+<div align="center">
+
+**[alest.io](https://alest.io)** · Built on Solana · Powered by AI
+
+</div>
