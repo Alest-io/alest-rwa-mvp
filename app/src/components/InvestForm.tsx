@@ -1,41 +1,39 @@
 import React, { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { useInvest } from "../hooks/useInvest";
+import { VaultData } from "../hooks/useAsset";
+import { getExplorerTxUrl } from "../utils/constants";
 
 const MIN_TOKENS = 50;
 const MAX_TOKENS = 5_000;
 const TOKEN_PRICE_USD = 1.0;
 
-export function InvestForm() {
+interface InvestFormProps {
+  vault: VaultData | null;
+  onSuccess?: () => void;
+}
+
+export function InvestForm({ vault, onSuccess }: InvestFormProps) {
   const { connected, publicKey } = useWallet();
+  const { invest, loading, txSig, error: investError } = useInvest(vault);
   const [amount, setAmount] = useState<number>(MIN_TOKENS);
-  const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const totalCost = amount * TOKEN_PRICE_USD;
 
   const handleInvest = async () => {
     if (!connected || !publicKey) return;
-
-    setLoading(true);
     setStatus("idle");
+    setErrorMsg(null);
 
     try {
-      // TODO: Call program.methods.invest()
-      // 1. Build the transaction
-      // 2. Send via wallet adapter
-      // 3. Confirm transaction
-      // 4. Update UI
-
-      console.log(`Investing ${amount} tokens ($${totalCost}) from ${publicKey.toBase58()}`);
-
-      // Simulated delay for MVP demo
-      await new Promise((r) => setTimeout(r, 2000));
+      await invest(amount);
       setStatus("success");
-    } catch (err) {
-      console.error("Investment failed:", err);
+      onSuccess?.();
+    } catch (err: any) {
       setStatus("error");
-    } finally {
-      setLoading(false);
+      setErrorMsg(err.message || "Error al procesar la inversión");
     }
   };
 
@@ -104,21 +102,34 @@ export function InvestForm() {
       {/* Invest button */}
       <button
         onClick={handleInvest}
-        disabled={loading}
+        disabled={loading || !vault}
         className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition"
       >
         {loading ? "Procesando..." : `Invertir $${totalCost.toLocaleString()} USD`}
       </button>
 
       {/* Status messages */}
-      {status === "success" && (
+      {status === "success" && txSig && (
+        <div className="mt-3 text-sm text-green-400 bg-green-900/30 p-3 rounded-lg">
+          ✅ ¡Inversión exitosa! Tus tokens han sido transferidos.{" "}
+          <a
+            href={getExplorerTxUrl(txSig)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-cyan-400"
+          >
+            Ver en Explorer
+          </a>
+        </div>
+      )}
+      {status === "success" && !txSig && (
         <div className="mt-3 text-sm text-green-400 bg-green-900/30 p-3 rounded-lg">
           ✅ ¡Inversión exitosa! Tus tokens han sido transferidos.
         </div>
       )}
       {status === "error" && (
         <div className="mt-3 text-sm text-red-400 bg-red-900/30 p-3 rounded-lg">
-          ❌ Error al procesar la inversión. Intenta de nuevo.
+          ❌ {errorMsg || investError || "Error al procesar la inversión. Intenta de nuevo."}
         </div>
       )}
 
